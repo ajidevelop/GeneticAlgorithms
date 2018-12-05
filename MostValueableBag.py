@@ -158,7 +158,8 @@ def multiple_generations(number_of_generation, max_value, size_population, best_
 
 
 def get_best_inidividual_from_population(population, max_value):
-    return compute_perfect_population(population, max_value)[0]
+    c = compute_perfect_population(population, max_value)
+    return list(c.values())[0]
 
 
 def get_list_best_individual_from_historique(historic, max_value):
@@ -174,15 +175,24 @@ def print_simple_result(historic, max_value, number_of_generations):
 
 
 def evolutionBestFitness(historic, max_value):
-    plt.axis([0, len(historic), 0, max_value])
-    plt.title(f'Max Value: {max_value}')
-
-    evolutionFitness = []
+    evolutionFitnessS = []
+    evolutionFitnessL = []
     for population in historic:
-        evolutionFitness.append(get_best_inidividual_from_population(population, max_value)[1])
-    plt.plot(evolutionFitness)
-    plt.ylabel('fitness best individual')
-    plt.xlabel('generation')
+        x = get_best_inidividual_from_population(population, max_value)
+        evolutionFitnessS.append(x['score'])
+        evolutionFitnessL.append(len(x['items']))
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax2 = ax.twinx()
+    ln1 = ax.plot(range(len(historic)), evolutionFitnessL, '-', label='Length', color='g')
+    ln2 = ax2.plot(range(len(historic)), evolutionFitnessS, '-', label='Score', color='b')
+
+    lns = ln1 + ln2
+    lnl = [l.get_label() for l in lns]
+    plt.legend(lns, lnl, loc=0)
+    ax.set_xlabel('generation')
+    ax.set_ylabel('Length')
+    ax2.set_ylabel('Score')
     plt.show()
 
 
@@ -220,3 +230,5 @@ else:
 
     print_simple_result(historic, bag_max_value, number_of_generation)
 
+    evolutionBestFitness(historic, bag_max_value)
+    evolutionAverageFitness(historic, bag_max_value, population_size)

@@ -207,7 +207,7 @@ def evolutionAverageFitness(historic, password, size_population):
 
 # variables
 
-password = input('Enter Word:')
+password = input('Enter Word: ')
 size_population = 100
 best_sample = 20
 lucky_few = 20
