@@ -3,7 +3,8 @@ __author__ = 'LobaAjisafe'
 import random
 from collections import OrderedDict
 import matplotlib.pyplot as plt
-
+import matplotlib.animation as am
+from matplotlib import style
 
 def fitness(value, max_value):
     """
@@ -197,19 +198,29 @@ def evolutionBestFitness(historic, max_value):
 
 
 def evolutionAverageFitness(historic, max_value, size_population):
-    plt.axis([0, len(historic), 0, max_value])
-    plt.title(max_value)
-
-    evolutionFitness = []
+    evolutionFitnessS = []
+    evolutionFitnessL = []
     for population in historic:
         populationPerf = compute_perfect_population(population, max_value)
-        averageFitness = 0
+        averageFitnessS = 0
+        averageFitnessL = 0
         for individual in populationPerf:
-            averageFitness += individual[1]
-        evolutionFitness.append(averageFitness/size_population)
-    plt.plot(evolutionFitness)
-    plt.ylabel('Average fitness')
-    plt.xlabel('generation')
+            averageFitnessS += populationPerf[individual]['score']
+            averageFitnessL += len(populationPerf[individual]['items'])
+        evolutionFitnessS.append(averageFitnessS/size_population)
+        evolutionFitnessL.append(averageFitnessL/size_population)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax2 = ax.twinx()
+    ln1 = ax.plot(range(len(historic)), evolutionFitnessL, '-', label='Length', color='g')
+    ln2 = ax2.plot(range(len(historic)), evolutionFitnessS, '-', label='Score', color='b')
+
+    lns = ln1 + ln2
+    lnl = [l.get_label() for l in lns]
+    plt.legend(lns, lnl, loc=0)
+    ax.set_xlabel('generation')
+    ax.set_ylabel('Length')
+    ax2.set_ylabel('Score')
     plt.show()
 
 
