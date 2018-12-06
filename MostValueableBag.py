@@ -3,8 +3,9 @@ __author__ = 'LobaAjisafe'
 import random
 from collections import OrderedDict
 import matplotlib.pyplot as plt
-import matplotlib.animation as am
-from matplotlib import style
+from live_plotter import live_plotter as lp
+import numpy as np
+
 
 def fitness(value, max_value):
     """
@@ -152,9 +153,24 @@ def next_generations(first_genertion, max_value, best_sample, lucky_few, number_
 
 
 def multiple_generations(number_of_generation, max_value, size_population, best_sample, lucky_few, number_of_child, chance_of_mutation, prices):
+    evolutionFitnessS = []
+    evolutionFitnessL = []
+    x_vec = np.linspace(0, number_of_generation, number_of_generation)
+    y_vec = np.linspace(0, 0, number_of_generation)
+    y2_vec = np.linspace(0, 0, number_of_generation)
+    line1, line2 = [], []
     historic = [generate_first_population(size_population, max_value, prices)]
     for i in range(number_of_generation):
-        historic.append(next_generations(historic[i], max_value, best_sample, lucky_few, number_of_child, chance_of_mutation, prices))
+        x = next_generations(historic[i], max_value, best_sample, lucky_few, number_of_child, chance_of_mutation, prices)
+        historic.append(x)
+        x = get_best_inidividual_from_population(x, max_value)
+        evolutionFitnessS.append(x['score'])
+        evolutionFitnessL.append(len(x['items']))
+        y_vec[-1] = evolutionFitnessL[-1]
+        y2_vec[-1] = evolutionFitnessS[-1]
+        line1, line2 = lp(x_vec, y_vec, line1, line2=line2, y2_data=y2_vec)
+        y_vec = np.append(y_vec[1:], 0.0)
+        y2_vec = np.append(y2_vec[1:], 0.0)
     return historic
 
 
@@ -224,14 +240,14 @@ def evolutionAverageFitness(historic, max_value, size_population):
     plt.show()
 
 
-bag_max_value = 60
-prices = [10, 12, 15, 2, 5]
+bag_max_value = 350
+prices = [45, 12, 8, 2, 300, 20, 135, 50]
 population_size = 25
 bag_best_sample = 5
 bag_lucky_few = 5
 number_of_children = 5
-number_of_generation = 20
-chance_of_mutation = 1
+number_of_generation = 100
+chance_of_mutation = 5
 
 if (bag_best_sample + bag_lucky_few) / 2 * number_of_children != population_size:
     print('population ize not stable')
