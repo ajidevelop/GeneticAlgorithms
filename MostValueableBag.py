@@ -3,7 +3,6 @@ __author__ = 'LobaAjisafe'
 import random
 from collections import OrderedDict
 import matplotlib.pyplot as plt
-from live_plotter import live_plotter as lp
 import numpy as np
 
 
@@ -14,7 +13,7 @@ def fitness(value, max_value):
     :return: score (float)
     """
     score = abs((max_value - value[0]) / 100)
-    score += len(value[1]) ** .5
+    score += len(value[1]) ** (1/4)
     return score
 
 
@@ -71,14 +70,17 @@ def select_from_population(population_sorted, best_sample, lucky_few):
 
     next_generation = []
     for i in range(best_sample):
-        next_generation.append(list(population_sorted.values())[i])
+        try:
+            next_generation.append(list(population_sorted.values())[i])
+        except IndexError:
+            pass
     for i in range(lucky_few):
         next_generation.append(random.choice(population_sorted))
     random.shuffle(next_generation)
     return next_generation
 
 
-def create_child(bag1, bag2):
+def create_child(bag1, bag2, max_value):
     """
     :param bag1:
     :param bag2:
@@ -86,7 +88,7 @@ def create_child(bag1, bag2):
     """
     child = 0
     items = []
-    while child < 60:
+    while child < max_value:
         if int(100 * random.random()) < 50:
             x = random.choice(bag1['items'])
             child += x
@@ -98,7 +100,7 @@ def create_child(bag1, bag2):
     return child, items
 
 
-def create_children(breeders, number_of_child):
+def create_children(breeders, number_of_child, max_value):
     """
     :param breeders:
     :param number_of_child:
@@ -107,7 +109,7 @@ def create_children(breeders, number_of_child):
     next_population = []
     for i in range(len(breeders)//2):
         for j in range(number_of_child):
-            next_population.append(create_child(breeders[0], breeders[len(breeders) - 1 - i]))
+            next_population.append(create_child(breeders[0], breeders[len(breeders) - 1 - i], max_value))
     return next_population
 
 
@@ -118,7 +120,10 @@ def mutateBag(bag, prices):
     """
     x = random.choice(prices)
     i = random.randint(0, len(bag[1])-1)
-    bag[1][i] = x
+    if random.random() * 100 < 50:
+        bag[1][i] = x   # change a value of the bag
+    else:
+        bag[1].append(x)  # add an extra value into the bag
     new_bag = (sum(bag[1]), bag[1])
     return new_bag
 
@@ -147,7 +152,7 @@ def next_generations(first_genertion, max_value, best_sample, lucky_few, number_
     """
     population_sorted = compute_perfect_population(first_genertion, max_value)
     next_breeders = select_from_population(population_sorted, best_sample, lucky_few)
-    next_population = create_children(next_breeders, number_of_child)
+    next_population = create_children(next_breeders, number_of_child, max_value)
     nextGeneration = mutatePopulation(next_population, chance_of_mutation, prices)
     return nextGeneration
 
@@ -164,13 +169,13 @@ def multiple_generations(number_of_generation, max_value, size_population, best_
         x = next_generations(historic[i], max_value, best_sample, lucky_few, number_of_child, chance_of_mutation, prices)
         historic.append(x)
         x = get_best_inidividual_from_population(x, max_value)
-        evolutionFitnessS.append(x['score'])
-        evolutionFitnessL.append(len(x['items']))
-        y_vec[-1] = evolutionFitnessL[-1]
-        y2_vec[-1] = evolutionFitnessS[-1]
-        line1, line2 = lp(x_vec, y_vec, line1, line2=line2, y2_data=y2_vec)
-        y_vec = np.append(y_vec[1:], 0.0)
-        y2_vec = np.append(y2_vec[1:], 0.0)
+        # evolutionFitnessS.append(x['score'])
+        # evolutionFitnessL.append(len(x['items']))
+        # y_vec[-1] = evolutionFitnessL[-1]
+        # y2_vec[-1] = evolutionFitnessS[-1]
+        # line1, line2 = lp(x_vec, y_vec, line1, line2=line2, y2_data=y2_vec)
+        # y_vec = np.append(y_vec[1:], 0.0)
+        # y2_vec = np.append(y2_vec[1:], 0.0)
     return historic
 
 
@@ -186,9 +191,13 @@ def get_list_best_individual_from_historique(historic, max_value):
     return best_individuals
 
 
-def print_simple_result(historic, max_value, number_of_generations):
+def print_simple_result(historic, max_value, number_of_generations, i=False):
     result = get_list_best_individual_from_historique(historic, max_value)[number_of_generations - 1]
-    print(f'solution: / {result} / de fitness: {str(result)}')
+    if i is not False:
+        print(f'Score: / {result["score"]} / Value: {str(result["value"])} - {i}')
+    else:
+        print(f'Score: / {result["score"]} / Value: {str(result["value"])}')
+    return result
 
 
 def evolutionBestFitness(historic, max_value):
@@ -240,22 +249,74 @@ def evolutionAverageFitness(historic, max_value, size_population):
     plt.show()
 
 
-bag_max_value = 350
-prices = [45, 12, 8, 2, 300, 20, 135, 50]
-population_size = 25
-bag_best_sample = 5
-bag_lucky_few = 5
-number_of_children = 5
-number_of_generation = 100
-chance_of_mutation = 5
+bag_max_value = 8255383
+prices = [116273, 71, 8, 2, 300, 20, 135, 50]
+population_size = 250
+bag_best_sample = 25
+bag_lucky_few = 25
+number_of_children = 10
+number_of_generation = 400
+chance_of_mutation = 20
 
-if (bag_best_sample + bag_lucky_few) / 2 * number_of_children != population_size:
-    print('population ize not stable')
-else:
-    historic = multiple_generations(number_of_generation, bag_max_value, population_size, bag_best_sample, bag_lucky_few, number_of_children,
-                                    chance_of_mutation, prices)
 
-    print_simple_result(historic, bag_max_value, number_of_generation)
+def run(bag_max_value, prices, population_size, bag_best_sample, bag_lucky_few, number_of_children, number_of_generation, chance_of_mutation,
+        i=False):
+    if (bag_best_sample + bag_lucky_few) / 2 * number_of_children != population_size:
+        print(f'population ize not stable - {i}')
+        return None
+    else:
+        historic = multiple_generations(number_of_generation, bag_max_value, population_size, bag_best_sample, bag_lucky_few, number_of_children,
+                                        chance_of_mutation, prices)
 
-    evolutionBestFitness(historic, bag_max_value)
-    evolutionAverageFitness(historic, bag_max_value, population_size)
+        p = print_simple_result(historic, bag_max_value, number_of_generation, i)
+
+        # evolutionBestFitness(historic, bag_max_value)
+        # evolutionAverageFitness(historic, bag_max_value, population_size)
+        return p
+
+
+def optimize_run(pop_size, sampl, luck_few, num_chil, num_gen, mut, trials):
+    runs = []
+    stats = OrderedDict()
+    v = 0
+    for a in range(1, pop_size):
+        for b in range(1, sampl):
+            for c in range(1, luck_few):
+                for d in range(1, num_chil):
+                    for e in range(1, num_gen):
+                        for f in range(1, mut):
+                            z = []
+                            for i in range(trials):
+                                x = run(bag_max_value, prices, a, b, c, d, e, f, v)
+                                z.append(x)
+                                v += 1
+                            best_trial = z[0]
+                            for i in z:
+                                try:
+                                    if best_trial['score'] < i['score']:
+                                        best_trial = i
+                                except TypeError:
+                                    pass
+                            stats[a+b+c+d+e+f-6] = {
+                                'population_size': pop_size,
+                                'best_sample': sampl,
+                                'lucky_few': luck_few,
+                                'number_of_children': num_chil,
+                                'number_of_generation': num_gen,
+                            }
+
+    best = runs[0]
+    x = 0
+    a = 0
+    for i in runs:
+        if best['score'] > i['score']:
+            best = i
+            x = a
+        a += 1
+    print(best)
+    print(stats[x])
+
+
+optimize_run(population_size, bag_best_sample, bag_lucky_few, number_of_children, number_of_generation, chance_of_mutation, 5)
+# run(bag_max_value, prices, population_size, bag_best_sample, bag_lucky_few, number_of_children, number_of_generation, chance_of_mutation)
+
