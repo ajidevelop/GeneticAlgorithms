@@ -6,6 +6,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+bag_max_value = 10
+prices = [1, 3, 4]
+population_size = 250
+bag_best_sample = 25
+bag_lucky_few = 25
+number_of_children = 10
+number_of_generation = 400
+chance_of_mutation = 20
+
+
 def fitness(value, max_value):
     """
     :param value: value of current bag (int)
@@ -196,7 +206,7 @@ def print_simple_result(historic, max_value, number_of_generations, i=False):
     if i is not False:
         print(f'Score: / {result["score"]} / Value: {str(result["value"])} - {i}')
     else:
-        print(f'Score: / {result["score"]} / Value: {str(result["value"])}')
+        print(f'Score: / {result["score"]} / Value: {str(result["value"])} / Items: {str(result["items"])}')
     return result
 
 
@@ -247,16 +257,6 @@ def evolutionAverageFitness(historic, max_value, size_population):
     ax.set_ylabel('Length')
     ax2.set_ylabel('Score')
     plt.show()
-
-
-bag_max_value = 8255383
-prices = [116273, 71, 8, 2, 300, 20, 135, 50]
-population_size = 250
-bag_best_sample = 25
-bag_lucky_few = 25
-number_of_children = 10
-number_of_generation = 400
-chance_of_mutation = 20
 
 
 def run(bag_max_value, prices, population_size, bag_best_sample, bag_lucky_few, number_of_children, number_of_generation, chance_of_mutation,
@@ -317,6 +317,6 @@ def optimize_run(pop_size, sampl, luck_few, num_chil, num_gen, mut, trials):
     print(stats[x])
 
 
-optimize_run(population_size, bag_best_sample, bag_lucky_few, number_of_children, number_of_generation, chance_of_mutation, 5)
-# run(bag_max_value, prices, population_size, bag_best_sample, bag_lucky_few, number_of_children, number_of_generation, chance_of_mutation)
+# optimize_run(population_size, bag_best_sample, bag_lucky_few, number_of_children, number_of_generation, chance_of_mutation, 5)
+run(bag_max_value, prices, population_size, bag_best_sample, bag_lucky_few, number_of_children, number_of_generation, chance_of_mutation)
 
